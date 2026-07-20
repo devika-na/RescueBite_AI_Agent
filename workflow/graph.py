@@ -3,6 +3,7 @@ from langgraph.graph import StateGraph, END
 from agents.state import FoodDonationState
 
 from agents.intake import intake_node
+from agents.vision import vision_node
 from agents.food_analysis import food_analysis_node
 from agents.food_safety import food_safety_node
 from agents.matching import matching_node
@@ -16,7 +17,18 @@ def build_graph(llm, ngos_df):
     builder = StateGraph(FoodDonationState)
 
     # Add all agents
-    builder.add_node("intake", intake_node)
+   # Add all agents
+
+    builder.add_node(
+    "intake",
+    intake_node
+)
+
+
+    builder.add_node(
+    "vision",
+    vision_node
+)
 
     builder.add_node(
         "food_analysis",
@@ -51,7 +63,17 @@ def build_graph(llm, ngos_df):
     # Workflow
     builder.set_entry_point("intake")
 
-    builder.add_edge("intake", "food_analysis")
+
+    builder.add_edge(
+    "intake",
+    "vision"
+)
+
+
+    builder.add_edge(
+    "vision",
+    "food_analysis"
+)
     builder.add_edge("food_analysis", "food_safety")
     builder.add_edge("food_safety", "matching")
     builder.add_edge("matching", "route")

@@ -3,26 +3,17 @@ from agents.state import FoodDonationState
 
 def intake_node(state: FoodDonationState) -> FoodDonationState:
 
-    print("=== Food Donation Intake Form ===")
-
-    donor_name = input("Donor name: ")
-    organization = input("Organization/Event name: ")
-
-    food_name = input("Food name: ")
-    quantity = input("Quantity of food (include unit like kg/packs/plates): ")
-
-    prep_time = input("Preparation time: ")
-    location = input("Pickup location: ")
+    print("=== Food Donation Intake Agent ===")
 
     return {
 
-        "donor_name": donor_name,
-        "organization": organization,
+        "donor_name": state["donor_name"],
+        "organization": state["organization"],
 
-        "food_name": food_name,
-        "quantity": quantity,
-        "prep_time": prep_time,
-        "location": location,
+        "food_name": state["food_name"],
+        "quantity": state["quantity"],
+        "prep_time": state["prep_time"],
+        "location": state["location"],
 
         "food_type": "",
         "servings": "",

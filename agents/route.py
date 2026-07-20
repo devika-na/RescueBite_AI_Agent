@@ -32,6 +32,9 @@ Pickup Location:
 
 NGO:
 {state['matched_ngo']}
+
+NGO Location:
+{state['ngo_location']}
 """
         )
 

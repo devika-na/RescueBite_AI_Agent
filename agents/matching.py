@@ -27,7 +27,6 @@ def matching_node(state: FoodDonationState, llm, ngos_df) -> FoodDonationState:
 
     ngo_data = ngos_df.to_string(index=False)
 
-
     response = llm.invoke([
 
         SystemMessage(content=MATCHING_PROMPT),
@@ -73,8 +72,24 @@ Available NGOs:
         selected_ngo = "No NGO found"
 
 
+    # Get NGO location from CSV
+    ngo_location = "Unknown"
+
+    ngo_row = ngos_df[
+        ngos_df["ngo_name"].str.contains(
+            selected_ngo,
+            case=False,
+            na=False
+        )
+    ]
+
+    if not ngo_row.empty:
+        ngo_location = ngo_row.iloc[0]["location"]
+
+
     return {
         **state,
         "matched_ngo": selected_ngo,
+        "ngo_location": ngo_location,
         "reasoning": result
     }

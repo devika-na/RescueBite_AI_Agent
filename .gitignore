@@ -2,3 +2,6 @@
 __pycache__/
 venv/
 *.pyc
+uploads/
+check_models.py
+test_gemini.py

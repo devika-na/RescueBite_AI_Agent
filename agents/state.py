@@ -10,6 +10,9 @@ class FoodDonationState(TypedDict):
     quantity: str
     prep_time: str
     location: str
+    
+    image_path: str
+    vision_result: str
 
     food_type: str
     servings: str
@@ -17,9 +20,10 @@ class FoodDonationState(TypedDict):
     safety_status: str
     safe_until: str
 
-    decision: str   # ✅ New field
+    decision: str
 
     matched_ngo: str
+    ngo_location: str   # NEW
 
     route: str
 
