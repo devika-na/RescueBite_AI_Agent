@@ -1,3 +1,4 @@
+from fastapi.middleware.cors import CORSMiddleware
 import os
 import pandas as pd
 
@@ -19,6 +20,13 @@ app = FastAPI(
     title="RescueBite AI API",
     description="AI Food Rescue Network using Agentic AI",
     version="1.0"
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
