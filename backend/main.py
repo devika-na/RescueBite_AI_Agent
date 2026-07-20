@@ -2,8 +2,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 import pandas as pd
 
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, Form, UploadFile, File
 from dotenv import load_dotenv
 
 from langchain_groq import ChatGroq
@@ -21,9 +20,14 @@ app = FastAPI(
     description="AI Food Rescue Network using Agentic AI",
     version="1.0"
 )
+
+
+# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -32,6 +36,7 @@ app.add_middleware(
 
 # Initialize Groq LLM
 groq_api_key = os.getenv("GROQ_API_KEY")
+
 
 llm = ChatGroq(
     model="llama-3.3-70b-versatile",
@@ -51,17 +56,6 @@ graph = build_graph(llm, ngos_df)
 print("RescueBite AI Graph Loaded 🚀")
 
 
-# Request model
-class DonationRequest(BaseModel):
-
-    donor_name: str
-    organization: str
-    food_name: str
-    quantity: str
-    prep_time: str
-    location: str
-
-
 
 @app.get("/")
 def home():
@@ -73,39 +67,86 @@ def home():
 
 
 @app.post("/donate")
-def create_donation(donation: DonationRequest):
+async def create_donation(
+
+    donor_name: str = Form(...),
+    organization: str = Form(...),
+    food_name: str = Form(...),
+    quantity: str = Form(...),
+    prep_time: str = Form(...),
+    location: str = Form(...),
+    image: UploadFile = File(None)
+
+):
+
+
+    image_path = None
+
+
+    if image:
+
+        os.makedirs("uploads", exist_ok=True)
+
+        image_path = f"uploads/{image.filename}"
+
+        with open(image_path, "wb") as f:
+
+            f.write(await image.read())
+
+
 
     initial_state = {
 
-        "donor_name": donation.donor_name,
-        "organization": donation.organization,
 
-        "food_name": donation.food_name,
-        "quantity": donation.quantity,
-        "prep_time": donation.prep_time,
-        "location": donation.location,
+        "donor_name": donor_name,
+
+        "organization": organization,
+
+        "food_name": food_name,
+
+        "quantity": quantity,
+
+        "prep_time": prep_time,
+
+        "location": location,
+
+
+        "image_path": image_path,
+
 
         "food_type": "",
+
         "servings": "",
 
+
         "safety_status": "",
+
         "safe_until": "",
+
 
         "decision": "",
 
+
         "matched_ngo": "",
+
 
         "route": "",
 
+
         "notification": "",
+
 
         "impact": "",
 
+
         "reasoning": ""
+
     }
 
 
+
     result = graph.invoke(initial_state)
+
 
 
     return result
