@@ -56,9 +56,9 @@ def build_graph(llm, ngos_df):
     )
 
     builder.add_node(
-        "impact",
-        lambda state: impact_node(state, llm)
-    )
+    "impact",
+    impact_node
+)
 
     # Workflow
     builder.set_entry_point("intake")
@@ -77,10 +77,9 @@ def build_graph(llm, ngos_df):
     builder.add_edge("food_analysis", "food_safety")
     builder.add_edge("food_safety", "matching")
     builder.add_edge("matching", "route")
-    builder.add_edge("route", "notification")
-    builder.add_edge("notification", "impact")
-    builder.add_edge("impact", END)
-
+    builder.add_edge("route", "impact")
+    builder.add_edge("impact", "notification")
+    builder.add_edge("notification", END)
     graph = builder.compile()
 
     return graph

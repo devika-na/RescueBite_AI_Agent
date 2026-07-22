@@ -26,6 +26,7 @@ One short sentence
 Rules:
 - Cooked food is usually safer within a few hours after preparation.
 - Non-vegetarian foods like chicken require more caution.
+- Consider food type and preparation time.
 """
 
 
@@ -37,16 +38,23 @@ def food_safety_node(state: FoodDonationState, llm) -> FoodDonationState:
 
         HumanMessage(
             content=f"""
-Food Name:
-{state['food_name']}
+Food Detected by Vision AI:
+
+{state['vision_result']}
+
 
 Food Type:
+
 {state['food_type']}
 
+
 Preparation Time:
+
 {state['prep_time']}
 
+
 Current Location:
+
 {state['location']}
 """
         )
@@ -55,25 +63,57 @@ Current Location:
 
     result = response.content
 
+
     print("=== Food Safety Agent ===")
     print(result)
 
 
+
     import re
+
 
     safe_until_match = re.search(
         r"Safe Until:\s*(.*)",
         result
     )
 
+
     if safe_until_match:
+
         safe_until = safe_until_match.group(1).strip()
+
     else:
+
         safe_until = "Not specified"
 
 
+
+
+    risk_match = re.search(
+        r"Risk Level:\s*(.*)",
+        result
+    )
+
+
+    if risk_match:
+
+        risk_level = risk_match.group(1).strip()
+
+    else:
+
+        risk_level = "Unknown"
+
+
+
+
     return {
+
         **state,
+
         "safety_status": result,
-        "safe_until": safe_until
+
+        "safe_until": safe_until,
+
+        "risk_level": risk_level
+
     }
