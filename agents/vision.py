@@ -1,11 +1,9 @@
-import torch
 from PIL import Image
-from transformers import pipeline
 
 from agents.state import FoodDonationState
 
 
-# Lazy loading: model will load only when image analysis is requested
+# Model will be loaded only when needed
 classifier = None
 
 
@@ -16,6 +14,8 @@ def get_classifier():
     if classifier is None:
 
         print("Loading Food Recognition Model...")
+
+        from transformers import pipeline
 
         classifier = pipeline(
             "image-classification",
@@ -30,11 +30,11 @@ def get_classifier():
 
 def analyze_food_image(image_path):
 
-    classifier = get_classifier()
+    classifier_model = get_classifier()
 
     image = Image.open(image_path).convert("RGB")
 
-    predictions = classifier(image)
+    predictions = classifier_model(image)
 
     top = predictions[0]
 
@@ -45,6 +45,7 @@ def analyze_food_image(image_path):
 
     result = f"""
 Food Name: {food}
+
 Confidence: {confidence}%
 
 Food Type:
@@ -63,16 +64,17 @@ Check preparation time before donation
 
 
 
-
 def vision_node(state: FoodDonationState):
 
     print("=== Vision AI Agent ===")
 
 
-    image_path = state.get("image_path", "")
+    image_path = state.get(
+        "image_path",
+        ""
+    )
 
 
-    # fallback if image is not uploaded
     detected_food = state.get(
         "food_name",
         "Unknown"
@@ -82,7 +84,10 @@ def vision_node(state: FoodDonationState):
     if image_path:
 
 
-        print("Analyzing image:", image_path)
+        print(
+            "Analyzing image:",
+            image_path
+        )
 
 
         try:
@@ -95,7 +100,10 @@ def vision_node(state: FoodDonationState):
         except Exception as e:
 
 
-            print("Vision Error:", e)
+            print(
+                "Vision Error:",
+                e
+            )
 
 
             result = f"""
@@ -113,7 +121,6 @@ Manual verification required
 Safety Suggestion:
 Follow food safety guidelines
 """
-
 
 
     else:
@@ -134,7 +141,6 @@ Manual verification required
 Safety Suggestion:
 Check preparation time before donation
 """
-
 
 
     print(result)
