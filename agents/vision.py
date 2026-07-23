@@ -1,48 +1,66 @@
+import torch
 from PIL import Image
-from google import genai
-import os
+from transformers import pipeline
 
 from agents.state import FoodDonationState
 
 
-client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
+# Lazy loading: model will load only when image analysis is requested
+classifier = None
 
 
-print("Food Vision Model Ready 🚀")
+def get_classifier():
+
+    global classifier
+
+    if classifier is None:
+
+        print("Loading Food Recognition Model...")
+
+        classifier = pipeline(
+            "image-classification",
+            model="nateraw/food"
+        )
+
+        print("Food Vision Model Loaded Successfully 🚀")
+
+    return classifier
+
 
 
 def analyze_food_image(image_path):
 
+    classifier = get_classifier()
+
     image = Image.open(image_path).convert("RGB")
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=[
-            """
-            Analyze this food image.
+    predictions = classifier(image)
 
-            Give:
-            - Food name
-            - Food type (Veg/Non-Veg)
-            - Estimated quantity
-            - Freshness observations
-            - Safety suggestion for donation
-            """,
-            image
-        ]
-    )
+    top = predictions[0]
 
-    result = response.text
+    food = top["label"].replace("_", " ").title()
 
-    # simple extraction fallback
-    food = "Unknown"
+    confidence = round(top["score"] * 100, 2)
 
-    if "Food name:" in result:
-        food = result.split("Food name:")[1].split("\n")[0].strip()
+
+    result = f"""
+Food Name: {food}
+Confidence: {confidence}%
+
+Food Type:
+Detected from image
+
+Estimated Freshness:
+Manual verification required
+
+Safety Suggestion:
+Check preparation time before donation
+"""
+
 
     return result, food
+
+
 
 
 
@@ -54,6 +72,7 @@ def vision_node(state: FoodDonationState):
     image_path = state.get("image_path", "")
 
 
+    # fallback if image is not uploaded
     detected_food = state.get(
         "food_name",
         "Unknown"
@@ -62,7 +81,9 @@ def vision_node(state: FoodDonationState):
 
     if image_path:
 
+
         print("Analyzing image:", image_path)
+
 
         try:
 
@@ -73,7 +94,9 @@ def vision_node(state: FoodDonationState):
 
         except Exception as e:
 
+
             print("Vision Error:", e)
+
 
             result = f"""
 Food Name: {detected_food}
@@ -84,12 +107,17 @@ Not available
 Food Type:
 Unknown
 
+Estimated Freshness:
+Manual verification required
+
 Safety Suggestion:
 Follow food safety guidelines
 """
 
 
+
     else:
+
 
         result = f"""
 Food Name: {detected_food}
@@ -100,9 +128,13 @@ Not available (image not uploaded)
 Food Type:
 Detected from user input
 
+Estimated Freshness:
+Manual verification required
+
 Safety Suggestion:
 Check preparation time before donation
 """
+
 
 
     print(result)

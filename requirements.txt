@@ -7,3 +7,5 @@ pandas
 fastapi
 uvicorn
 Pillow
+torch
+transformers
