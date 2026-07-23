@@ -1,23 +1,23 @@
 from agents.state import FoodDonationState
 
 from langchain_core.messages import SystemMessage, HumanMessage
+
 import re
+
 
 
 FOOD_ANALYSIS_PROMPT = """
 You are a Food Analysis AI Agent.
 
-Analyze the food information provided by Vision AI.
+Analyze the donated food.
 
-Find:
-1. Food name
-2. Food type (Vegetarian or Non-Vegetarian)
-3. Estimated servings
-4. Reason
+Rules:
+- The user entered food name is the primary source.
+- Do not replace a valid food name with "Not specified" or "Unknown".
+- Determine food type as Vegetarian or Non-Vegetarian.
+- Estimate servings based on quantity.
 
-Use Vision AI result as the main source.
-
-Always return exactly in this format:
+Return exactly in this format:
 
 Food Name:
 Food Type:
@@ -26,39 +26,54 @@ Reason:
 """
 
 
+
 def food_analysis_node(state: FoodDonationState, llm) -> FoodDonationState:
+
+
+    user_food_name = state.get(
+        "food_name",
+        "Unknown"
+    )
+
 
     response = llm.invoke([
 
-        SystemMessage(content=FOOD_ANALYSIS_PROMPT),
+
+        SystemMessage(
+            content=FOOD_ANALYSIS_PROMPT
+        ),
+
+
 
         HumanMessage(
             content=f"""
-Vision AI Result:
-
-{state.get('vision_result', '')}
-
-
 User Entered Food Name:
 
-{state.get('food_name', '')}
+{user_food_name}
 
 
 Quantity:
 
-{state.get('quantity', '')}
+{state.get('quantity','')}
 
 
 Preparation Time:
 
-{state.get('prep_time', '')}
+{state.get('prep_time','')}
+
+
+Vision Information:
+
+{state.get('vision_result','')}
 """
         )
 
     ])
 
 
+
     result = response.content
+
 
 
     print("========== FOOD ANALYSIS AGENT ==========")
@@ -66,10 +81,15 @@ Preparation Time:
     print("=========================================")
 
 
-    # Default values
 
-    food_name = state.get("food_name", "Unknown")
+    # -------------------------
+    # Default values
+    # -------------------------
+
+    food_name = user_food_name
+
     food_type = "Unknown"
+
     servings = "Unknown"
 
 
@@ -84,8 +104,24 @@ Preparation Time:
         re.IGNORECASE
     )
 
+
     if name_match:
-        food_name = name_match.group(1).strip()
+
+        extracted_name = (
+            name_match.group(1)
+            .strip()
+        )
+
+
+        if extracted_name.lower() not in [
+            "",
+            "unknown",
+            "not specified",
+            "not detected",
+            "none"
+        ]:
+
+            food_name = extracted_name
 
 
 
@@ -98,7 +134,9 @@ Preparation Time:
         result,
         re.IGNORECASE
     ):
+
         food_type = "Non-Vegetarian"
+
 
 
     elif re.search(
@@ -106,6 +144,7 @@ Preparation Time:
         result,
         re.IGNORECASE
     ):
+
         food_type = "Vegetarian"
 
 
@@ -122,19 +161,37 @@ Preparation Time:
 
 
     if servings_match:
-        servings = servings_match.group(1).strip()
+
+        extracted_servings = (
+            servings_match.group(1)
+            .strip()
+        )
+
+
+        if extracted_servings.lower() not in [
+            "",
+            "unknown",
+            "not specified"
+        ]:
+
+            servings = extracted_servings
 
 
 
     return {
 
+
         **state,
+
 
         "food_name": food_name,
 
+
         "food_type": food_type,
 
+
         "servings": servings,
+
 
         "reasoning": result
 
