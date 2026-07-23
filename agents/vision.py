@@ -3,7 +3,7 @@ from PIL import Image
 from agents.state import FoodDonationState
 
 
-# Model will be loaded only when needed
+# Load model only when image analysis is requested
 classifier = None
 
 
@@ -58,9 +58,7 @@ Safety Suggestion:
 Check preparation time before donation
 """
 
-
     return result, food
-
 
 
 
@@ -83,12 +81,7 @@ def vision_node(state: FoodDonationState):
 
     if image_path:
 
-
-        print(
-            "Analyzing image:",
-            image_path
-        )
-
+        print("Analyzing image:", image_path)
 
         try:
 
@@ -99,12 +92,7 @@ def vision_node(state: FoodDonationState):
 
         except Exception as e:
 
-
-            print(
-                "Vision Error:",
-                e
-            )
-
+            print("Vision Error:", e)
 
             result = f"""
 Food Name: {detected_food}
@@ -124,7 +112,6 @@ Follow food safety guidelines
 
 
     else:
-
 
         result = f"""
 Food Name: {detected_food}
