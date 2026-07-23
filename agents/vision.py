@@ -1,59 +1,48 @@
-import torch
 from PIL import Image
-from transformers import pipeline
+from google import genai
+import os
 
 from agents.state import FoodDonationState
 
 
-print("Loading Food Recognition Model...")
-
-
-classifier = pipeline(
-    "image-classification",
-    model="nateraw/food"
+client = genai.Client(
+    api_key=os.getenv("GEMINI_API_KEY")
 )
 
 
-print("Food Vision Model Loaded Successfully 🚀")
-
+print("Food Vision Model Ready 🚀")
 
 
 def analyze_food_image(image_path):
 
     image = Image.open(image_path).convert("RGB")
 
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=[
+            """
+            Analyze this food image.
 
-    predictions = classifier(image)
+            Give:
+            - Food name
+            - Food type (Veg/Non-Veg)
+            - Estimated quantity
+            - Freshness observations
+            - Safety suggestion for donation
+            """,
+            image
+        ]
+    )
 
+    result = response.text
 
-    top = predictions[0]
+    # simple extraction fallback
+    food = "Unknown"
 
-
-    food = top["label"].replace("_", " ").title()
-
-
-    confidence = round(top["score"] * 100, 2)
-
-
-
-    result = f"""
-Food Name: {food}
-Confidence: {confidence}%
-
-Food Type: Detected from image
-
-Estimated Freshness:
-Manual verification required
-
-Safety Suggestion:
-Check preparation time before donation
-"""
-
+    if "Food name:" in result:
+        food = result.split("Food name:")[1].split("\n")[0].strip()
 
     return result, food
-
-
-
 
 
 
@@ -65,19 +54,15 @@ def vision_node(state: FoodDonationState):
     image_path = state.get("image_path", "")
 
 
-    # fallback if image is not uploaded
     detected_food = state.get(
         "food_name",
         "Unknown"
     )
 
 
-
     if image_path:
 
-
         print("Analyzing image:", image_path)
-
 
         try:
 
@@ -88,9 +73,7 @@ def vision_node(state: FoodDonationState):
 
         except Exception as e:
 
-
             print("Vision Error:", e)
-
 
             result = f"""
 Food Name: {detected_food}
@@ -101,17 +84,12 @@ Not available
 Food Type:
 Unknown
 
-Estimated Freshness:
-Manual verification required
-
 Safety Suggestion:
 Follow food safety guidelines
 """
 
 
-
     else:
-
 
         result = f"""
 Food Name: {detected_food}
@@ -122,17 +100,12 @@ Not available (image not uploaded)
 Food Type:
 Detected from user input
 
-Estimated Freshness:
-Manual verification required
-
 Safety Suggestion:
 Check preparation time before donation
 """
 
 
-
     print(result)
-
 
 
     return {
