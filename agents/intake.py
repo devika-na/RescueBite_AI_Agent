@@ -5,69 +5,131 @@ def intake_node(state: FoodDonationState) -> FoodDonationState:
 
     print("=== Food Donation Intake Agent ===")
 
+    print("Donor:", state.get("donor_name"))
+    print("Organization:", state.get("organization"))
+    print("Food:", state.get("food_name"))
+    print("Quantity:", state.get("quantity"))
+    print("Location:", state.get("location"))
+
 
     return {
 
-        # User details
-        "donor_name": state["donor_name"],
-        "organization": state["organization"],
+
+        # -----------------------
+        # Donation Intake Details
+        # -----------------------
+
+        "donor_name": state.get(
+            "donor_name",
+            ""
+        ),
+
+        "organization": state.get(
+            "organization",
+            ""
+        ),
 
 
         # IMPORTANT:
-        # Do not trust manually entered food name.
-        # Vision AI will detect the food from image.
-        "food_name": "",
+        # Keep user entered food name
+        # Vision AI is optional now
+
+        "food_name": state.get(
+            "food_name",
+            "Unknown"
+        ),
 
 
-        # Donation details
-        "quantity": state["quantity"],
-        "prep_time": state["prep_time"],
-        "location": state["location"],
+        "quantity": state.get(
+            "quantity",
+            ""
+        ),
+
+        "prep_time": state.get(
+            "prep_time",
+            ""
+        ),
+
+        "location": state.get(
+            "location",
+            ""
+        ),
 
 
 
-        # Vision AI output
+        # -----------------------
+        # Vision AI Output
+        # -----------------------
+
+        "image_path": state.get(
+            "image_path",
+            ""
+        ),
+
         "vision_result": "",
 
 
-        # Food analysis
+
+        # -----------------------
+        # Food Analysis Agent
+        # -----------------------
+
         "food_type": "",
+
         "servings": "",
 
 
 
-        # Safety Agent
+        # -----------------------
+        # Food Safety Agent
+        # -----------------------
+
         "safety_status": "",
+
         "safe_until": "",
 
-
-
-        # Decision
-        "decision": "",
+        "risk_level": "",
 
 
 
+        # -----------------------
         # NGO Matching Agent
+        # -----------------------
+
         "matched_ngo": "",
 
+        "ngo_location": "",
 
 
+
+        # -----------------------
         # Logistics Agent
+        # -----------------------
+
         "route": "",
 
 
 
+        # -----------------------
         # Notification Agent
+        # -----------------------
+
         "notification": "",
 
 
 
-        # Sustainability
+        # -----------------------
+        # Sustainability Agent
+        # -----------------------
+
         "impact": "",
 
 
 
-        # Agent reasoning
+        # -----------------------
+        # Agent Reasoning
+        # -----------------------
+
         "reasoning": ""
 
     }
