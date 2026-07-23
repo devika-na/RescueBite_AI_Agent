@@ -9,3 +9,4 @@ uvicorn
 Pillow
 transformers
 python-multipart
+langchain-google-genai

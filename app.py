@@ -7,6 +7,7 @@ from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 
 from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from workflow.graph import build_graph
 
@@ -31,9 +32,9 @@ app.add_middleware(
     CORSMiddleware,
 
     allow_origins=[
-    "http://localhost:5173",
-    "https://rescue-bite-frontend.vercel.app"
-],
+        "http://localhost:5173",
+        "https://rescue-bite-frontend.vercel.app"
+    ],
 
     allow_credentials=True,
 
@@ -44,7 +45,10 @@ app.add_middleware(
 
 
 
+# -----------------------------
 # Initialize Groq LLM
+# Used by text-based agents
+# -----------------------------
 
 groq_api_key = os.getenv("GROQ_API_KEY")
 
@@ -60,7 +64,28 @@ print("Groq LLM initialized successfully")
 
 
 
+# -----------------------------
+# Initialize Gemini Vision LLM
+# Used by Vision Agent
+# -----------------------------
+
+google_api_key = os.getenv("GOOGLE_API_KEY")
+
+
+vision_llm = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash",
+    temperature=0,
+    google_api_key=google_api_key
+)
+
+
+print("Gemini Vision initialized successfully")
+
+
+
+# -----------------------------
 # Load NGO dataset
+# -----------------------------
 
 ngos_df = pd.read_csv(
     "data/ngos.csv"
@@ -71,10 +96,13 @@ print("NGO dataset loaded successfully")
 
 
 
-# Build workflow
+# -----------------------------
+# Build LangGraph Workflow
+# -----------------------------
 
 graph = build_graph(
     llm,
+    vision_llm,
     ngos_df
 )
 
@@ -96,7 +124,9 @@ def home():
 
 
 
-# Donation API with Image Upload
+# -----------------------------
+# Donation API
+# -----------------------------
 
 @app.post("/donate")
 async def create_donation(
@@ -124,7 +154,6 @@ async def create_donation(
     # Save uploaded image
 
     if image:
-
 
         os.makedirs(
             "uploads",
@@ -154,7 +183,7 @@ async def create_donation(
 
 
 
-    # Create LangGraph state
+    # LangGraph State
 
     state = {
 
@@ -189,9 +218,7 @@ async def create_donation(
 
         "safe_until": "",
 
-
-
-        "decision": "",
+        "risk_level": "",
 
 
 
@@ -220,7 +247,6 @@ async def create_donation(
 
 
     result = graph.invoke(state)
-
 
 
     return result
