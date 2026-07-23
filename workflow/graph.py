@@ -13,7 +13,7 @@ from agents.impact import impact_node
 
 
 
-def build_graph(llm, vision_llm, ngos_df):
+def build_graph(llm, ngos_df):
 
 
     builder = StateGraph(FoodDonationState)
@@ -25,61 +25,79 @@ def build_graph(llm, vision_llm, ngos_df):
     # -------------------------
 
 
+    # Intake Agent
+
     builder.add_node(
         "intake",
         intake_node
     )
 
 
-    # Vision Agent uses Gemini Vision
+
+    # Vision Agent
+    # Manual mode - uses user food input
 
     builder.add_node(
         "vision",
-        lambda state: vision_node(
-            state,
-            vision_llm
-        )
+        vision_node
     )
 
 
-    # Text Agents use Groq
+
+    # Food Analysis Agent
 
     builder.add_node(
         "food_analysis",
-        lambda state: food_analysis_node(
-            state,
-            llm
-        )
+        lambda state:
+            food_analysis_node(
+                state,
+                llm
+            )
     )
 
+
+
+    # Food Safety Agent
 
     builder.add_node(
         "food_safety",
-        lambda state: food_safety_node(
-            state,
-            llm
-        )
+        lambda state:
+            food_safety_node(
+                state,
+                llm
+            )
     )
 
+
+
+    # NGO Matching Agent
 
     builder.add_node(
         "matching",
-        lambda state: matching_node(
-            state,
-            llm,
-            ngos_df
-        )
+        lambda state:
+            matching_node(
+                state,
+                llm,
+                ngos_df
+            )
     )
 
+
+
+    # Route Planning Agent
 
     builder.add_node(
         "route",
-        lambda state: route_node(
-            state,
-            llm
-        )
+        lambda state:
+            route_node(
+                state,
+                llm
+            )
     )
 
+
+
+    # Impact Analytics Agent
 
     builder.add_node(
         "impact",
@@ -87,12 +105,16 @@ def build_graph(llm, vision_llm, ngos_df):
     )
 
 
+
+    # Notification Agent
+
     builder.add_node(
         "notification",
-        lambda state: notification_node(
-            state,
-            llm
-        )
+        lambda state:
+            notification_node(
+                state,
+                llm
+            )
     )
 
 
@@ -107,10 +129,12 @@ def build_graph(llm, vision_llm, ngos_df):
     )
 
 
+
     builder.add_edge(
         "intake",
         "vision"
     )
+
 
 
     builder.add_edge(
@@ -119,10 +143,12 @@ def build_graph(llm, vision_llm, ngos_df):
     )
 
 
+
     builder.add_edge(
         "food_analysis",
         "food_safety"
     )
+
 
 
     builder.add_edge(
@@ -131,10 +157,12 @@ def build_graph(llm, vision_llm, ngos_df):
     )
 
 
+
     builder.add_edge(
         "matching",
         "route"
     )
+
 
 
     builder.add_edge(
@@ -143,10 +171,12 @@ def build_graph(llm, vision_llm, ngos_df):
     )
 
 
+
     builder.add_edge(
         "impact",
         "notification"
     )
+
 
 
     builder.add_edge(

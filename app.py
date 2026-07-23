@@ -7,7 +7,6 @@ from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 
 from langchain_groq import ChatGroq
-from langchain_google_genai import ChatGoogleGenerativeAI
 
 from workflow.graph import build_graph
 
@@ -65,25 +64,6 @@ print("Groq LLM initialized successfully")
 
 
 # -----------------------------
-# Initialize Gemini Vision LLM
-# Used by Vision Agent
-# -----------------------------
-
-google_api_key = os.getenv("GOOGLE_API_KEY")
-
-print("GOOGLE KEY EXISTS:", bool(google_api_key))
-vision_llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    temperature=0,
-    google_api_key=google_api_key
-)
-
-
-print("Gemini Vision initialized successfully")
-
-
-
-# -----------------------------
 # Load NGO dataset
 # -----------------------------
 
@@ -102,7 +82,6 @@ print("NGO dataset loaded successfully")
 
 graph = build_graph(
     llm,
-    vision_llm,
     ngos_df
 )
 
@@ -112,7 +91,9 @@ print("RescueBite AI Workflow Created Successfully 🚀")
 
 
 
+# -----------------------------
 # Home API
+# -----------------------------
 
 @app.get("/")
 def home():
@@ -151,7 +132,7 @@ async def create_donation(
     image_path = ""
 
 
-    # Save uploaded image
+    # Save uploaded image (optional)
 
     if image:
 
@@ -193,6 +174,7 @@ async def create_donation(
         "organization": organization,
 
 
+        # User entered food name
         "food_name": food_name,
 
         "quantity": quantity,
@@ -203,6 +185,9 @@ async def create_donation(
 
 
         "image_path": image_path,
+
+
+        # Vision agent will use manual input
 
         "vision_result": "",
 
@@ -246,7 +231,11 @@ async def create_donation(
 
 
 
-    result = graph.invoke(state)
+    # Run AI workflow
+
+    result = graph.invoke(
+        state
+    )
 
 
     return result
