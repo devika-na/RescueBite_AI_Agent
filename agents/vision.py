@@ -2,7 +2,7 @@ import base64
 
 from agents.state import FoodDonationState
 from langchain_core.messages import HumanMessage
-
+print("🔥 USING GEMINI VISION FILE 🔥")
 
 VISION_PROMPT = """
 You are a Food Vision AI Agent.

@@ -71,7 +71,7 @@ print("Groq LLM initialized successfully")
 
 google_api_key = os.getenv("GOOGLE_API_KEY")
 
-
+print("GOOGLE KEY EXISTS:", bool(google_api_key))
 vision_llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
     temperature=0,
