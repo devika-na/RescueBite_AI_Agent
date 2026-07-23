@@ -1,6 +1,7 @@
 langgraph
 langchain
 langchain-groq
+google-genai
 python-dotenv
 pandas
 fastapi
